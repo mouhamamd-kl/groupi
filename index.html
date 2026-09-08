@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>زميل — اعثر على فريقك</title>
+
+  <!-- Arabic Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+
+<body>
+
+
+  <!-- =======================================================
+       HEADER
+  ======================================================== -->
+
+  <header>
+
+    <a href="#" class="logo">
+
+      <div class="logo-mark"></div>
+
+      زميل
+
+    </a>
+
+
+    <nav class="nav">
+
+      <button
+        class="nav-button active"
+        data-view="teams"
+        onclick="switchView('teams')"
+      >
+        فرق تبحث عن عضو
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-view="members"
+        onclick="switchView('members')"
+      >
+        طلاب يبحثون عن فريق
+      </button>
+
+    </nav>
+
+
+    <div class="header-action">
+
+      <button
+        class="post-button"
+        onclick="openPostModal()"
+      >
+
+        <span>+</span>
+
+        أضف منشورًا
+
+      </button>
+
+    </div>
+
+  </header>
+
+
+
+  <!-- =======================================================
+       MAIN
+  ======================================================== -->
+
+  <main>
+
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="hero">
+
+
+      <div>
+
+        <div class="eyebrow">
+
+          <span class="eyebrow-dot"></span>
+
+          للتواصل بين طلاب الجامعة
+
+        </div>
+
+
+        <h1>
+
+          اعثر على<br>
+
+          <span class="blue">فريقك.</span>
+
+        </h1>
+
+      </div>
+
+
+
+      <div>
+
+        <p class="hero-description">
+
+          مكان بسيط لطلاب الجامعة للعثور على الأشخاص
+          المناسبين لمشاريعهم. بدون إدارة فرق،
+          وبدون خطوات معقدة.
+
+        </p>
+
+
+        <div class="hero-note">
+
+          تصفح. تواصل. ابدأ.
+
+        </div>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FEED
+    ====================================================== -->
+
+    <section>
+
+
+      <div class="feed-header">
+
+        <h2
+          class="feed-title"
+          id="feedTitle"
+        >
+          فرق تبحث عن عضو
+        </h2>
+
+
+        <div
+          class="feed-count"
+          id="feedCount"
+        >
+          03 POSTS
+        </div>
+
+      </div>
+
+
+      <div
+        class="posts"
+        id="posts"
+      ></div>
+
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- =======================================================
+       FOOTER
+  ======================================================== -->
+
+  <footer>
+
+    <div>
+
+      <strong>زميل</strong>
+
+      — لوحة مشاريع الجامعة
+
+    </div>
+
+
+    <div>
+
+      اعثر على الأشخاص. أنجز المشروع.
+
+    </div>
+
+  </footer>
+
+
+
+  <!-- =======================================================
+       CREATE POST MODAL
+  ======================================================== -->
+
+  <div
+    class="overlay"
+    id="postOverlay"
+    onclick="closeOverlayFromOutside(event, 'postOverlay')"
+  >
+
+
+    <div class="modal">
+
+
+      <div class="modal-header">
+
+
+        <div>
+
+          <div class="modal-eyebrow">
+
+            منشور جديد
+
+          </div>
+
+
+          <h3>
+
+            ماذا<br>
+
+            تبحث عنه؟
+
+          </h3>
+
+        </div>
+
+
+        <button
+          class="close-button"
+          onclick="closePostModal()"
+        >
+
+          ×
+
+        </button>
+
+
+      </div>
+
+
+
+      <form onsubmit="createPost(event)">
+
+
+        <div class="form-group">
+
+          <label for="postType">
+
+            أنا
+
+          </label>
+
+
+          <select
+            id="postType"
+            required
+          >
+
+            <option value="team">
+
+              فريق يبحث عن عضو
+
+            </option>
+
+
+            <option value="member">
+
+              طالب يبحث عن فريق
+
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <div class="form-row">
+
+
+          <div class="form-group">
+
+            <label for="project">
+
+              المشروع
+
+            </label>
+
+
+            <input
+              id="project"
+              type="text"
+              placeholder="مثال: تطبيق للهواتف"
+              required
+            />
+
+          </div>
+
+
+
+          <div class="form-group">
+
+            <label for="role">
+
+              التخصص المطلوب
+
+            </label>
+
+
+            <input
+              id="role"
+              type="text"
+              placeholder="مثال: مطور Backend"
+              required
+            />
+
+          </div>
+
+
+        </div>
+
+
+
+        <div class="form-group">
+
+          <label for="description">
+
+            الوصف
+
+          </label>
+
+
+          <textarea
+            id="description"
+            placeholder="اكتب ما الذي تحتاج إليه..."
+            required
+          ></textarea>
+
+        </div>
+
+
+
+        <div class="form-row">
+
+
+          <div class="form-group">
+
+            <label for="name">
+
+              الاسم
+
+            </label>
+
+
+            <input
+              id="name"
+              type="text"
+              placeholder="مثال: أحمد محمد"
+              required
+            />
+
+          </div>
+
+
+
+          <div class="form-group">
+
+            <label for="contact">
+
+              وسيلة التواصل
+
+            </label>
+
+
+            <input
+              id="contact"
+              type="text"
+              placeholder="البريد الإلكتروني / واتساب"
+              required
+            />
+
+          </div>
+
+
+        </div>
+
+
+
+        <button
+          class="submit-button"
+          type="submit"
+        >
+
+          نشر الإعلان
+
+        </button>
+
+
+      </form>
+
+
+    </div>
+
+
+  </div>
+
+
+
+  <!-- =======================================================
+       CONTACT MODAL
+  ======================================================== -->
+
+  <div
+    class="overlay"
+    id="contactOverlay"
+    onclick="closeOverlayFromOutside(event, 'contactOverlay')"
+  >
+
+
+    <div class="modal">
+
+
+      <div class="modal-header">
+
+
+        <div>
+
+          <div class="modal-eyebrow">
+
+            تواصل
+
+          </div>
+
+
+          <h3>
+
+            تواصل مع<br>
+
+            هذا الطالب.
+
+          </h3>
+
+        </div>
+
+
+        <button
+          class="close-button"
+          onclick="closeContactModal()"
+        >
+
+          ×
+
+        </button>
+
+
+      </div>
+
+
+
+      <div class="contact-content">
+
+
+        <div class="contact-person">
+
+
+          <div
+            class="contact-avatar"
+            id="contactAvatar"
+          >
+
+            AM
+
+          </div>
+
+
+          <div>
+
+            <div
+              class="contact-name"
+              id="contactName"
+            >
+
+              أحمد محمد
+
+            </div>
+
+
+            <div
+              class="contact-project"
+              id="contactProject"
+            >
+
+              مشروع تطبيق للهواتف
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+
+        <div class="contact-box">
+
+
+          <div class="contact-label">
+
+            وسيلة التواصل
+
+          </div>
+
+
+          <div
+            class="contact-value"
+            id="contactValue"
+          >
+
+            ahmed@example.com
+
+          </div>
+
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+
+  <!-- =======================================================
+       JAVASCRIPT
+  ======================================================== -->
+
+  <script>
+
+
+    /* ========================================================
+       SAMPLE POSTS
+    ======================================================== */
+
+    let posts = [
+
+
+      {
+        type: "team",
+
+        project: "تطبيق للهواتف",
+
+        role: "مطور Backend",
+
+        description:
+          "نحن 3 طلاب نعمل على بناء تطبيق للهواتف ونحتاج إلى مطور Backend للانضمام إلى الفريق وإكمال المشروع.",
+
+        name: "عمر حسن",
+
+        contact: "omar@example.com",
+
+        meta: "علوم الحاسب · السنة الرابعة",
+
+        time: "منذ ساعتين"
+      },
+
+
+      {
+        type: "team",
+
+        project: "الذكاء الاصطناعي",
+
+        role: "مصمم UI/UX",
+
+        description:
+          "نبحث عن مصمم يساعدنا في تصميم الواجهة وتجربة المستخدم لمشروع التخرج الخاص بالذكاء الاصطناعي.",
+
+        name: "سارة علي",
+
+        contact: "sara@example.com",
+
+        meta: "هندسة البرمجيات · السنة الرابعة",
+
+        time: "منذ 5 ساعات"
+      },
+
+
+      {
+        type: "team",
+
+        project: "متجر إلكتروني",
+
+        role: "مطور Frontend",
+
+        description:
+          "لدينا الـ Backend وقاعدة البيانات جاهزان. نحتاج إلى مطور Frontend لديه خبرة في React.",
+
+        name: "يوسف عادل",
+
+        contact: "youssef@example.com",
+
+        meta: "علوم الحاسب · السنة الثالثة",
+
+        time: "أمس"
+      },
+
+
+      {
+        type: "member",
+
+        project: "تطبيق للهواتف",
+
+        role: "مطور Backend",
+
+        description:
+          "أبحث عن فريق يعمل على تطبيق للهواتف. أستطيع التعامل مع APIs وقواعد البيانات وFirebase.",
+
+        name: "أحمد محمد",
+
+        contact: "ahmed@example.com",
+
+        meta: "علوم الحاسب · السنة الرابعة",
+
+        time: "منذ ساعة"
+      },
+
+
+      {
+        type: "member",
+
+        project: "مشروع التخرج",
+
+        role: "مصمم UI/UX",
+
+        description:
+          "أبحث عن فريق يحتاج إلى المساعدة في أبحاث المستخدمين والـ Wireframes وتصميم الواجهات.",
+
+        name: "مريم خالد",
+
+        contact: "mariam@example.com",
+
+        meta: "نظم المعلومات · السنة الرابعة",
+
+        time: "منذ 4 ساعات"
+      },
+
+
+      {
+        type: "member",
+
+        project: "تطبيق ويب",
+
+        role: "مطور Frontend",
+
+        description:
+          "مطور Frontend لدي خبرة في HTML وCSS وJavaScript، وأبحث عن فريق لمشروع جامعي.",
+
+        name: "كريم مصطفى",
+
+        contact: "karim@example.com",
+
+        meta: "علوم الحاسب · السنة الثالثة",
+
+        time: "أمس"
+      }
+
+    ];
+
+
+
+    /* ========================================================
+       CURRENT VIEW
+    ======================================================== */
+
+    let currentView = "teams";
+
+
+
+    /* ========================================================
+       SWITCH VIEW
+    ======================================================== */
+
+    function switchView(view) {
+
+      currentView = view;
+
+
+      document
+        .querySelectorAll(".nav-button")
+        .forEach(button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.view === view
+          );
+
+        });
+
+
+      const title =
+        document.getElementById("feedTitle");
+
+
+      if (view === "teams") {
+
+        title.textContent =
+          "فرق تبحث عن عضو";
+
+      } else {
+
+        title.textContent =
+          "طلاب يبحثون عن فريق";
+
+      }
+
+
+      renderPosts();
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    }
+
+
+
+    /* ========================================================
+       RENDER POSTS
+    ======================================================== */
+
+    function renderPosts() {
+
+      const container =
+        document.getElementById("posts");
+
+
+      const count =
+        document.getElementById("feedCount");
+
+
+      const filteredPosts =
+        posts.filter(post => {
+
+          return currentView === "teams"
+            ? post.type === "team"
+            : post.type === "member";
+
+        });
+
+
+      count.textContent =
+        `${String(filteredPosts.length).padStart(2, "0")} POSTS`;
+
+
+      if (filteredPosts.length === 0) {
+
+        container.innerHTML = `
+
+          <div class="empty">
+
+            <strong>
+              لا توجد منشورات بعد.
+            </strong>
+
+            كن أول شخص ينشر إعلانًا.
+
+          </div>
+
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        filteredPosts
+          .map((post, index) =>
+            createPostCard(post, index)
+          )
+          .join("");
+
+    }
+
+
+
+    /* ========================================================
+       CREATE POST CARD
+    ======================================================== */
+
+    function createPostCard(post, index) {
+
+      const initials =
+        getInitials(post.name);
+
+
+      const typeLabel =
+        post.type === "team"
+          ? "فريق"
+          : "طالب";
+
+
+      const roleLabel =
+        post.type === "team"
+          ? "يبحث عن"
+          : "متاح كـ";
+
+
+      return `
+
+        <article class="post ${post.type}">
+
+
+          <div class="post-top">
+
+
+            <div class="post-number">
+
+              ${String(index + 1).padStart(2, "0")}
+
+            </div>
+
+
+            <div class="post-type">
+
+              <span class="post-type-dot"></span>
+
+              ${typeLabel}
+
+            </div>
+
+
+          </div>
+
+
+
+          <div>
+
+
+            <div class="post-role">
+
+              ${escapeHtml(roleLabel)}
+
+              ·
+
+              ${escapeHtml(post.role)}
+
+            </div>
+
+
+
+            <h2>
+
+              ${escapeHtml(post.project)}
+
+            </h2>
+
+
+
+            <div class="post-project">
+
+              <span></span>
+
+              مشروع جامعي
+
+            </div>
+
+
+
+            <p class="post-description">
+
+              ${escapeHtml(post.description)}
+
+            </p>
+
+
+          </div>
+
+
+
+          <div class="post-footer">
+
+
+            <div class="person">
+
+
+              <div class="avatar">
+
+                ${initials}
+
+              </div>
+
+
+              <div class="person-info">
+
+
+                <div class="person-name">
+
+                  ${escapeHtml(post.name)}
+
+                </div>
+
+
+                <div class="person-meta">
+
+                  ${escapeHtml(post.meta)}
+
+                  ·
+
+                  ${escapeHtml(post.time)}
+
+                </div>
+
+
+              </div>
+
+
+            </div>
+
+
+
+            <button
+              class="contact-button"
+              onclick='openContactModal(${JSON.stringify(post)})'
+            >
+
+              تواصل ←
+
+            </button>
+
+
+          </div>
+
+
+        </article>
+
+      `;
+
+    }
+
+
+
+    /* ========================================================
+       OPEN POST MODAL
+    ======================================================== */
+
+    function openPostModal() {
+
+      document
+        .getElementById("postOverlay")
+        .classList.add("show");
+
+
+      document.body.style.overflow = "hidden";
+
+    }
+
+
+
+    /* ========================================================
+       CLOSE POST MODAL
+    ======================================================== */
+
+    function closePostModal() {
+
+      document
+        .getElementById("postOverlay")
+        .classList.remove("show");
+
+
+      document.body.style.overflow = "";
+
+    }
+
+
+
+    /* ========================================================
+       CREATE POST
+    ======================================================== */
+
+    function createPost(event) {
+
+      event.preventDefault();
+
+
+      const type =
+        document.getElementById("postType").value;
+
+
+      const project =
+        document.getElementById("project")
+          .value
+          .trim();
+
+
+      const role =
+        document.getElementById("role")
+          .value
+          .trim();
+
+
+      const description =
+        document.getElementById("description")
+          .value
+          .trim();
+
+
+      const name =
+        document.getElementById("name")
+          .value
+          .trim();
+
+
+      const contact =
+        document.getElementById("contact")
+          .value
+          .trim();
+
+
+      if (
+        !project ||
+        !role ||
+        !description ||
+        !name ||
+        !contact
+      ) {
+
+        return;
+
+      }
+
+
+      posts.unshift({
+
+        type,
+
+        project,
+
+        role,
+
+        description,
+
+        name,
+
+        contact,
+
+        meta: "طالب جامعي",
+
+        time: "الآن"
+
+      });
+
+
+      event.target.reset();
+
+
+      closePostModal();
+
+
+      switchView(
+        type === "team"
+          ? "teams"
+          : "members"
+      );
+
+    }
+
+
+
+    /* ========================================================
+       OPEN CONTACT MODAL
+    ======================================================== */
+
+    function openContactModal(post) {
+
+      document
+        .getElementById("contactAvatar")
+        .textContent =
+        getInitials(post.name);
+
+
+      document
+        .getElementById("contactName")
+        .textContent =
+        post.name;
+
+
+      document
+        .getElementById("contactProject")
+        .textContent =
+        post.project;
+
+
+      document
+        .getElementById("contactValue")
+        .textContent =
+        post.contact;
+
+
+      document
+        .getElementById("contactOverlay")
+        .classList.add("show");
+
+
+      document.body.style.overflow = "hidden";
+
+    }
+
+
+
+    /* ========================================================
+       CLOSE CONTACT MODAL
+    ======================================================== */
+
+    function closeContactModal() {
+
+      document
+        .getElementById("contactOverlay")
+        .classList.remove("show");
+
+
+      document.body.style.overflow = "";
+
+    }
+
+
+
+    /* ========================================================
+       CLOSE OVERLAY FROM OUTSIDE
+    ======================================================== */
+
+    function closeOverlayFromOutside(
+      event,
+      overlayId
+    ) {
+
+      if (
+        event.target.id === overlayId
+      ) {
+
+        if (
+          overlayId === "postOverlay"
+        ) {
+
+          closePostModal();
+
+        } else {
+
+          closeContactModal();
+
+        }
+
+      }
+
+    }
+
+
+
+    /* ========================================================
+       ESCAPE KEY
+    ======================================================== */
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (event.key === "Escape") {
+
+          closePostModal();
+
+          closeContactModal();
+
+        }
+
+      }
+    );
+
+
+
+    /* ========================================================
+       GET INITIALS
+    ======================================================== */
+
+    function getInitials(name) {
+
+      return name
+        .split(" ")
+        .slice(0, 2)
+        .map(word => word[0])
+        .join("")
+        .toUpperCase();
+
+    }
+
+
+
+    /* ========================================================
+       ESCAPE HTML
+    ======================================================== */
+
+    function escapeHtml(value) {
+
+      return String(value)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+
+    /* ========================================================
+       INITIAL RENDER
+    ======================================================== */
+
+    renderPosts();
+
+  </script>
+
+</body>
+
+</html>
