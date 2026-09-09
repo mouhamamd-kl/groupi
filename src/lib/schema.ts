@@ -18,6 +18,7 @@ export const posts = pgTable("posts", {
   description: text("description").notNull(),
   name: text("name").notNull(),
   contact: text("contact").notNull(),
+  github: text("github"),
   meta: text("meta").notNull().default("طالب جامعي"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

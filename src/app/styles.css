@@ -1147,6 +1147,49 @@
       color: var(--blue);
     }
 
+    .github-button {
+      width: 37px;
+      height: 37px;
+
+      display: grid;
+
+      place-items: center;
+
+      border: 1px solid var(--line);
+
+      background: white;
+
+      color: var(--muted);
+
+      border-radius: 50%;
+
+      text-decoration: none;
+
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
+    }
+
+    .github-button:hover {
+      border-color: var(--blue);
+
+      background: var(--blue-soft);
+
+      color: var(--blue);
+
+      transform: translateY(-1px);
+    }
+
+    .github-button:active {
+      transform: scale(0.92);
+    }
+
+    .github-button svg {
+      flex-shrink: 0;
+    }
+
 
     /* =========================================================
        EMPTY
@@ -1603,6 +1646,10 @@
       background: white;
     }
 
+    .contact-box + .contact-box {
+      margin-top: 10px;
+    }
+
     .contact-label {
       color: var(--muted);
 
@@ -2028,6 +2075,7 @@
     .nav-button:focus-visible,
     .post-button:focus-visible,
     .contact-button:focus-visible,
+    .github-button:focus-visible,
     .filter-pill:focus-visible,
     .close-button:focus-visible,
     .submit-button:focus-visible,

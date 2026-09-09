@@ -48,6 +48,7 @@ export default function CreatePostModal({
     const year = Number(data.get("year") || 0);
     const description = String(data.get("description") || "").trim();
     const name = String(data.get("name") || "").trim();
+    const github = String(data.get("github") || "").trim() || null;
 
     if (
       roles.length === 0 ||
@@ -71,6 +72,7 @@ export default function CreatePostModal({
         description,
         name,
         contact: telegram,
+        github,
       };
 
       if (isEdit && initial && onUpdate) {
@@ -256,6 +258,19 @@ export default function CreatePostModal({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="github">رابط GitHub (اختياري)</label>
+
+                <input
+                  id="github"
+                  name="github"
+                  type="text"
+                  placeholder="مثال: someone أو someone/repo"
+                  dir="ltr"
+                  defaultValue={initial?.github ?? ""}
+                />
               </div>
             </>
           )}

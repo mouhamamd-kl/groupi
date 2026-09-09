@@ -14,6 +14,7 @@ const MAX_LENGTHS = {
   project: 200,
   description: 2000,
   name: 100,
+  github: 200,
 } as const;
 
 const MAX_ROLES = 8;
@@ -32,6 +33,7 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
   const type = cleanType(data.type);
   const project =
     type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) : null;
+  const github = type === "member" ? cleanGithub(data.github) : null;
   const roles = cleanRoles(data.roles);
   const description = clean(data.description, MAX_LENGTHS.description);
   const name = clean(data.name, MAX_LENGTHS.name);
@@ -70,7 +72,7 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
   }
 
   const created = await insertPost(
-    { type, project, roles, year, description, name, contact: telegram },
+    { type, project, roles, year, description, name, contact: telegram, github },
     session.user.id
   );
 
@@ -139,6 +141,7 @@ export async function editOwnPost(
   const type = cleanType(data.type);
   const project =
     type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) : null;
+  const github = type === "member" ? cleanGithub(data.github) : null;
   const roles = cleanRoles(data.roles);
   const description = clean(data.description, MAX_LENGTHS.description);
   const name = clean(data.name, MAX_LENGTHS.name);
@@ -184,6 +187,7 @@ export async function editOwnPost(
     description,
     name,
     contact: telegram,
+    github,
   });
 
   if (!updated) {
@@ -230,6 +234,50 @@ function cleanTelegram(value: unknown): string {
   }
 
   return username;
+}
+
+function cleanGithub(value: unknown): string | null {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error("بيانات غير صالحة");
+  }
+
+  const trimmed = value.trim().slice(0, MAX_LENGTHS.github);
+
+  if (!trimmed) {
+    return null;
+  }
+
+  let url = trimmed;
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://github.com/${url}`;
+  }
+
+  try {
+    const parsed = new URL(url);
+
+    if (parsed.hostname !== "github.com") {
+      throw new Error("رابط GitHub غير صالح");
+    }
+
+    const parts = parsed.pathname.split("/").filter(Boolean);
+
+    if (parts.length < 1 || parts.length > 2) {
+      throw new Error("رابط GitHub غير صالح");
+    }
+
+    return `https://github.com/${parts.join("/")}`;
+  } catch (error) {
+    if (error instanceof Error && error.message === "رابط GitHub غير صالح") {
+      throw error;
+    }
+
+    throw new Error("رابط GitHub غير صالح");
+  }
 }
 
 function cleanType(value: string): PostType {

@@ -96,6 +96,25 @@ export default function ContactModal({ post, onClose }: ContactModalProps) {
               </a>
             </div>
           </div>
+
+          {post.type === "member" && post.github && (
+            <div className="contact-box contact-box-github">
+              <div className="contact-label">GitHub</div>
+
+              <div className="contact-value">{post.github}</div>
+
+              <div className="contact-actions">
+                <a
+                  className="contact-open"
+                  href={post.github}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  فتح في GitHub
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
