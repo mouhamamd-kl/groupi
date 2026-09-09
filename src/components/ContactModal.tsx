@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getInitials, type Post } from "@/lib/types";
 
 interface ContactModalProps {
@@ -8,6 +9,24 @@ interface ContactModalProps {
 }
 
 export default function ContactModal({ post, onClose }: ContactModalProps) {
+  const [copied, setCopied] = useState(false);
+  const handle = post.contact.replace(/^@/, "");
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(handle);
+    } catch {
+      const fallback = document.createElement("textarea");
+      fallback.value = handle;
+      document.body.appendChild(fallback);
+      fallback.select();
+      document.execCommand("copy");
+      fallback.remove();
+    }
+
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   return (
     <div
       className="overlay show"
@@ -34,19 +53,48 @@ export default function ContactModal({ post, onClose }: ContactModalProps) {
 
         <div className="contact-content">
           <div className="contact-person">
-            <div className="contact-avatar">{getInitials(post.name)}</div>
+            {post.avatar ? (
+              <img
+                className="contact-avatar contact-avatar-img"
+                src={post.avatar}
+                alt=""
+              />
+            ) : (
+              <div className="contact-avatar">{getInitials(post.name)}</div>
+            )}
 
             <div>
               <div className="contact-name">{post.name}</div>
 
-              <div className="contact-project">{post.project}</div>
+              {post.type === "team" && post.project && (
+                <div className="contact-project">{post.project}</div>
+              )}
             </div>
           </div>
 
           <div className="contact-box">
-            <div className="contact-label">وسيلة التواصل</div>
+            <div className="contact-label">تيليجرام</div>
 
-            <div className="contact-value">{post.contact}</div>
+            <div className="contact-value">@{handle}</div>
+
+            <div className="contact-actions">
+              <button
+                type="button"
+                className={`copy-button ${copied ? "copied" : ""}`}
+                onClick={handleCopy}
+              >
+                {copied ? "تم النسخ ✓" : "نسخ المعرف"}
+              </button>
+
+              <a
+                className="contact-open"
+                href={`https://t.me/${handle}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                فتح في تيليجرام
+              </a>
+            </div>
           </div>
         </div>
       </div>

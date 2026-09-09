@@ -1,37 +1,95 @@
 "use client";
 
-import { FormEvent } from "react";
-import type { Post, PostType } from "@/lib/types";
-
-type NewPostData = Omit<Post, "meta" | "time">;
+import { FormEvent, useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import type { NewPostInput, Post, PostType, Role, Year } from "@/lib/types";
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onSubmit: (data: NewPostData) => void;
+  onSubmit: (data: NewPostInput) => Promise<void>;
+  roles: Role[];
+  years: Year[];
+  initial?: Post | null;
+  onUpdate?: (postId: number, data: NewPostInput) => Promise<void>;
 }
 
 export default function CreatePostModal({
   onClose,
   onSubmit,
+  roles,
+  years,
+  initial,
+  onUpdate,
 }: CreatePostModalProps) {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const { data: session, isPending } = authClient.useSession();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [postType, setPostType] = useState<PostType>(initial?.type ?? "team");
+
+  const isEdit = Boolean(initial);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const form = event.currentTarget;
     const data = new FormData(form);
 
     const type = String(data.get("type") || "team") as PostType;
-    const project = String(data.get("project") || "").trim();
-    const role = String(data.get("role") || "").trim();
+    const project =
+      type === "team" ? String(data.get("project") || "").trim() : null;
+    const roles =
+      type === "team"
+        ? [String(data.get("role") || "").trim()]
+        : data
+            .getAll("role")
+            .map((value) => String(value).trim())
+            .filter(Boolean);
+    const telegram = String(data.get("contact") || "").trim();
+    const year = Number(data.get("year") || 0);
     const description = String(data.get("description") || "").trim();
     const name = String(data.get("name") || "").trim();
-    const contact = String(data.get("contact") || "").trim();
 
-    if (!project || !role || !description || !name || !contact) return;
+    if (
+      roles.length === 0 ||
+      !year ||
+      !description ||
+      !name ||
+      !telegram ||
+      (type === "team" && !project)
+    )
+      return;
 
-    onSubmit({ type, project, role, description, name, contact });
-    form.reset();
-    onClose();
+    setPending(true);
+    setError(null);
+
+    try {
+      const payload: NewPostInput = {
+        type,
+        project,
+        roles,
+        year,
+        description,
+        name,
+        contact: telegram,
+      };
+
+      if (isEdit && initial && onUpdate) {
+        await onUpdate(initial.id, payload);
+      } else {
+        await onSubmit(payload);
+        form.reset();
+      }
+
+      onClose();
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "حدث خطأ أثناء النشر. حاول مرة أخرى."
+      );
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -45,11 +103,22 @@ export default function CreatePostModal({
       <div className="modal">
         <div className="modal-header">
           <div>
-            <div className="modal-eyebrow">منشور جديد</div>
+            <div className="modal-eyebrow">
+              {isEdit ? "تعديل المنشور" : "منشور جديد"}
+            </div>
 
             <h3>
-              ماذا<br />
-              تبحث عنه؟
+              {isEdit ? (
+                <>
+                  عدّل<br />
+                  إعلانك
+                </>
+              ) : (
+                <>
+                  ماذا<br />
+                  تبحث عنه؟
+                </>
+              )}
             </h3>
           </div>
 
@@ -58,42 +127,138 @@ export default function CreatePostModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        {isPending ? (
+          <div className="auth-gate">…</div>
+        ) : !session?.user ? (
+          <div className="auth-gate">
+            <p>سجّل الدخول بحساب Google لنشر إعلانك</p>
+
+            <button
+              className="submit-button"
+              onClick={() => authClient.signIn.social({ provider: "google" })}
+            >
+              تسجيل الدخول عبر Google
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="postType">أنا</label>
 
-            <select id="postType" name="type" required defaultValue="team">
+            <select
+              id="postType"
+              name="type"
+              required
+              value={postType}
+              onChange={(event) => setPostType(event.target.value as PostType)}
+            >
               <option value="team">فريق يبحث عن عضو</option>
 
               <option value="member">طالب يبحث عن فريق</option>
             </select>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="project">المشروع</label>
+          {postType === "team" ? (
+            <>
+              <div className="form-group">
+                <label>التخصص المطلوب</label>
 
-              <input
-                id="project"
-                name="project"
-                type="text"
-                placeholder="مثال: تطبيق للهواتف"
-                required
-              />
-            </div>
+                <div className="role-pills role-pills-team">
+                  {roles.map((role) => (
+                    <label key={role.value} className="role-pill">
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role.value}
+                        required
+                        defaultChecked={initial?.roleValues[0] === role.value}
+                      />
 
-            <div className="form-group">
-              <label htmlFor="role">التخصص المطلوب</label>
+                      <span>{role.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-              <input
-                id="role"
-                name="role"
-                type="text"
-                placeholder="مثال: مطور Backend"
-                required
-              />
-            </div>
-          </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="project">المشروع</label>
+
+                  <input
+                    id="project"
+                    name="project"
+                    type="text"
+                    placeholder="مثال: تطبيق للهواتف"
+                    required
+                    defaultValue={initial?.project ?? ""}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="year">السنة</label>
+
+                  <select
+                    id="year"
+                    name="year"
+                    required
+                    defaultValue={initial?.year ?? ""}
+                  >
+                    <option value="" disabled>
+                      اختر السنة...
+                    </option>
+
+                    {years.map((year) => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label>تخصصي</label>
+
+                <div className="role-pills">
+                  {roles.map((role) => (
+                    <label key={role.value} className="role-pill">
+                      <input
+                        type="checkbox"
+                        name="role"
+                        value={role.value}
+                        defaultChecked={initial?.roleValues.includes(role.value)}
+                      />
+
+                      <span>{role.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="year">السنة</label>
+
+                <select
+                  id="year"
+                  name="year"
+                  required
+                  defaultValue={initial?.year ?? ""}
+                >
+                  <option value="" disabled>
+                    اختر السنة...
+                  </option>
+
+                  {years.map((year) => (
+                    <option key={year.value} value={year.value}>
+                      {year.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
 
           <div className="form-group">
             <label htmlFor="description">الوصف</label>
@@ -103,6 +268,7 @@ export default function CreatePostModal({
               name="description"
               placeholder="اكتب ما الذي تحتاج إليه..."
               required
+              defaultValue={initial?.description ?? ""}
             ></textarea>
           </div>
 
@@ -115,27 +281,39 @@ export default function CreatePostModal({
                 name="name"
                 type="text"
                 placeholder="مثال: أحمد محمد"
+                defaultValue={initial?.name ?? session.user.name ?? ""}
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="contact">وسيلة التواصل</label>
+              <label htmlFor="contact">معرف تيليجرام</label>
 
               <input
                 id="contact"
                 name="contact"
                 type="text"
-                placeholder="البريد الإلكتروني / واتساب"
+                placeholder="@username"
+                dir="ltr"
+                defaultValue={initial?.contact ?? ""}
                 required
               />
             </div>
           </div>
 
-          <button className="submit-button" type="submit">
-            نشر الإعلان
+          {error && <p className="form-error">{error}</p>}
+
+          <button className="submit-button" type="submit" disabled={pending}>
+            {pending
+              ? isEdit
+                ? "جاري الحفظ…"
+                : "جاري النشر…"
+              : isEdit
+                ? "حفظ التعديلات"
+                : "نشر الإعلان"}
           </button>
         </form>
+        )}
       </div>
     </div>
   );
