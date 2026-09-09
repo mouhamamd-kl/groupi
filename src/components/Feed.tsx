@@ -116,7 +116,9 @@ export default function Feed({
                     </>
                   )}
 
+                  {post.description && (
                   <p className="post-description">{post.description}</p>
+                )}
                 </div>
 
                 <div className="post-footer">

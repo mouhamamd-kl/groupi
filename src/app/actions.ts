@@ -41,7 +41,6 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
   const year = Number(data.year);
 
   if (
-    !description ||
     !name ||
     !telegram ||
     !Number.isInteger(year) ||
@@ -149,7 +148,6 @@ export async function editOwnPost(
   const year = Number(data.year);
 
   if (
-    !description ||
     !name ||
     !telegram ||
     !Number.isInteger(year) ||

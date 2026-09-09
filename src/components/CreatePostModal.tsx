@@ -53,7 +53,6 @@ export default function CreatePostModal({
     if (
       roles.length === 0 ||
       !year ||
-      !description ||
       !name ||
       !telegram ||
       (type === "team" && !project)
@@ -276,13 +275,12 @@ export default function CreatePostModal({
           )}
 
           <div className="form-group">
-            <label htmlFor="description">الوصف</label>
+            <label htmlFor="description">الوصف (اختياري)</label>
 
             <textarea
               id="description"
               name="description"
               placeholder="اكتب ما الذي تحتاج إليه..."
-              required
               defaultValue={initial?.description ?? ""}
             ></textarea>
           </div>
