@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       <header className="dash-head">
         <div>
           <h1>لوحة التحكم</h1>
-          <p>نظرة عامة على نشاط موقع زميل — آخر 30 يومًا</p>
+          <p>نظرة عامة على نشاط موقع غروبي — آخر 30 يومًا</p>
         </div>
 
         <Link href="/" className="dash-back">

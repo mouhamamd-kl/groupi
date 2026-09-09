@@ -3,7 +3,7 @@ import "./globals.css";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "زميل — اعثر على فريقك",
+  title: "غروبي — اعثر على فريقك",
   description: "لوحة مشاريع الجامعة — اعثر على فريقك",
 };
 

@@ -19,7 +19,7 @@ export default function Header({
     <header>
       <a href="#" className="logo">
         <div className="logo-mark"></div>
-        زميل
+        غروبي
       </a>
 
       <nav className="nav">
