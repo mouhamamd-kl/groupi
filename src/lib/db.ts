@@ -147,14 +147,11 @@ async function runInit(): Promise<void> {
       name text NOT NULL,
       contact text NOT NULL,
       github text,
+      specialization text,
       meta text NOT NULL DEFAULT 'طالب جامعي',
       created_at timestamptz NOT NULL DEFAULT now(),
       user_id text REFERENCES "user"(id) ON DELETE SET NULL
     );
-  `);
-
-  await db.execute(sql`
-    ALTER TABLE posts ADD COLUMN IF NOT EXISTS github text;
   `);
 
   await db.execute(sql`

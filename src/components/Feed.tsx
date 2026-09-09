@@ -1,4 +1,5 @@
 import { getInitials, type Post } from "@/lib/types";
+import { getSpecializationLabel } from "@/lib/specializations";
 
 interface FeedEmptyAction {
   label: string;
@@ -99,6 +100,13 @@ export default function Feed({
                         {role}
                       </span>
                     ))}
+
+                    {post.specialization &&
+                      getSpecializationLabel(post.specialization) && (
+                        <span className="post-spec-pill">
+                          {getSpecializationLabel(post.specialization)}
+                        </span>
+                      )}
 
                     {post.yearLabel && (
                       <span className="post-role-year">· {post.yearLabel}</span>

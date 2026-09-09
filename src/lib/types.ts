@@ -22,6 +22,7 @@ export interface Post {
   name: string;
   contact: string;
   github: string | null;
+  specialization: string | null;
   meta: string;
   time: string;
   createdAt: string;
@@ -38,6 +39,7 @@ export interface NewPostInput {
   name: string;
   contact: string;
   github: string | null;
+  specialization: string | null;
 }
 
 export const getInitials = (name: string) =>

@@ -66,6 +66,7 @@ export async function insertPost(
       name: data.name,
       contact: data.contact,
       github: data.github,
+      specialization: data.specialization,
       userId,
     })
     .returning();
@@ -110,6 +111,7 @@ interface PostRow {
   name: string;
   contact: string;
   github: string | null;
+  specialization: string | null;
   meta: string;
   createdAt: Date;
   userId: string | null;
@@ -153,6 +155,7 @@ export async function updatePost(
       name: data.name,
       contact: data.contact,
       github: data.github,
+      specialization: data.specialization,
     })
     .where(eq(posts.id, postId));
 
@@ -211,6 +214,7 @@ function toPost(
     name: row.name,
     contact: row.contact,
     github: row.github,
+    specialization: row.specialization,
     meta: row.meta,
     time: timeAgo(new Date(row.createdAt)),
     createdAt: new Date(row.createdAt).toISOString(),

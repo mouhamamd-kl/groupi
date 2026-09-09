@@ -2,6 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import {
+  requiresSpecialization,
+  SPECIALIZATIONS,
+} from "@/lib/specializations";
 import type { NewPostInput, Post, PostType, Role, Year } from "@/lib/types";
 
 interface CreatePostModalProps {
@@ -25,6 +29,7 @@ export default function CreatePostModal({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [postType, setPostType] = useState<PostType>(initial?.type ?? "team");
+  const [year, setYear] = useState(initial?.year ?? 0);
 
   const isEdit = Boolean(initial);
 
@@ -49,13 +54,18 @@ export default function CreatePostModal({
     const description = String(data.get("description") || "").trim();
     const name = String(data.get("name") || "").trim();
     const github = String(data.get("github") || "").trim() || null;
+    const specialization =
+      data.get("specialization") && requiresSpecialization(year)
+        ? String(data.get("specialization")).trim()
+        : null;
 
     if (
       roles.length === 0 ||
       !year ||
       !name ||
       !telegram ||
-      (type === "team" && !project)
+      (type === "team" && !project) ||
+      (requiresSpecialization(year) && !specialization)
     )
       return;
 
@@ -72,6 +82,7 @@ export default function CreatePostModal({
         name,
         contact: telegram,
         github,
+        specialization,
       };
 
       if (isEdit && initial && onUpdate) {
@@ -202,7 +213,8 @@ export default function CreatePostModal({
                     id="year"
                     name="year"
                     required
-                    defaultValue={initial?.year ?? ""}
+                    value={year === 0 ? "" : year}
+                    onChange={(event) => setYear(Number(event.target.value))}
                   >
                     <option value="" disabled>
                       اختر السنة...
@@ -272,6 +284,29 @@ export default function CreatePostModal({
                 />
               </div>
             </>
+          )}
+
+          {(requiresSpecialization(year) && year !== 0) && (
+            <div className="form-group">
+              <label htmlFor="specialization">التخصص</label>
+
+              <select
+                id="specialization"
+                name="specialization"
+                required
+                defaultValue={initial?.specialization ?? ""}
+              >
+                <option value="" disabled>
+                  اختر التخصص...
+                </option>
+
+                {SPECIALIZATIONS.map((spec) => (
+                  <option key={spec.value} value={spec.value}>
+                    {spec.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
           <div className="form-group">

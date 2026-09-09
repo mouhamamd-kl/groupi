@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { initDb } from "@/lib/db";
 import { deletePost, insertPost, updatePost } from "@/lib/posts";
 import { getRoles } from "@/lib/roles";
+import { requiresSpecialization, SPECIALIZATIONS } from "@/lib/specializations";
 import { getYears } from "@/lib/years";
 import type { NewPostInput, Post, PostType } from "@/lib/types";
 
@@ -70,8 +71,20 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
     throw new Error("السنة المختارة غير صالحة");
   }
 
+  const specialization = cleanSpecialization(data.specialization, year);
+
   const created = await insertPost(
-    { type, project, roles, year, description, name, contact: telegram, github },
+    {
+      type,
+      project,
+      roles,
+      year,
+      description,
+      name,
+      contact: telegram,
+      github,
+      specialization,
+    },
     session.user.id
   );
 
@@ -177,6 +190,8 @@ export async function editOwnPost(
     throw new Error("السنة المختارة غير صالحة");
   }
 
+  const specialization = cleanSpecialization(data.specialization, year);
+
   const updated = await updatePost(postId, session.user.id, {
     type,
     project,
@@ -186,6 +201,7 @@ export async function editOwnPost(
     name,
     contact: telegram,
     github,
+    specialization,
   });
 
   if (!updated) {
@@ -276,6 +292,27 @@ function cleanGithub(value: unknown): string | null {
 
     throw new Error("رابط GitHub غير صالح");
   }
+}
+
+function cleanSpecialization(
+  value: unknown,
+  year: number
+): string | null {
+  if (!requiresSpecialization(year)) {
+    return null;
+  }
+
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("يرجى ملء جميع الحقول");
+  }
+
+  const spec = value.trim();
+
+  if (!SPECIALIZATIONS.some((s) => s.value === spec)) {
+    throw new Error("التخصص المختار غير صالح");
+  }
+
+  return spec;
 }
 
 function cleanType(value: string): PostType {
