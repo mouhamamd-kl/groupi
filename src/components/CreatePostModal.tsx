@@ -257,7 +257,8 @@ export default function CreatePostModal({
                   id="year"
                   name="year"
                   required
-                  defaultValue={initial?.year ?? ""}
+                  value={year === 0 ? "" : year}
+                  onChange={(event) => setYear(Number(event.target.value))}
                 >
                   <option value="" disabled>
                     اختر السنة...
