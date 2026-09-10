@@ -35,7 +35,7 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
 
   const type = cleanType(data.type);
   const project =
-    type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) : null;
+    type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) || null : null;
   const github = type === "member" ? cleanGithub(data.github) : null;
   const roles = cleanRoles(data.roles);
   const description = clean(data.description, MAX_LENGTHS.description);
@@ -43,12 +43,7 @@ export async function createNewPost(data: NewPostInput): Promise<Post> {
   const telegram = cleanTelegram(data.contact);
   const year = Number(data.year);
 
-  if (
-    !name ||
-    !telegram ||
-    !Number.isInteger(year) ||
-    (type === "team" && !project)
-  ) {
+  if (!name || !telegram || !Number.isInteger(year)) {
     throw new Error("يرجى ملء جميع الحقول");
   }
 
@@ -154,7 +149,7 @@ export async function editOwnPost(
 
   const type = cleanType(data.type);
   const project =
-    type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) : null;
+    type === "team" ? clean(data.project ?? "", MAX_LENGTHS.project) || null : null;
   const github = type === "member" ? cleanGithub(data.github) : null;
   const roles = cleanRoles(data.roles);
   const description = clean(data.description, MAX_LENGTHS.description);
@@ -162,12 +157,7 @@ export async function editOwnPost(
   const telegram = cleanTelegram(data.contact);
   const year = Number(data.year);
 
-  if (
-    !name ||
-    !telegram ||
-    !Number.isInteger(year) ||
-    (type === "team" && !project)
-  ) {
+  if (!name || !telegram || !Number.isInteger(year)) {
     throw new Error("يرجى ملء جميع الحقول");
   }
 

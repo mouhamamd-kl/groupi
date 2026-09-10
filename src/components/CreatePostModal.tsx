@@ -41,7 +41,7 @@ export default function CreatePostModal({
 
     const type = String(data.get("type") || "team") as PostType;
     const project =
-      type === "team" ? String(data.get("project") || "").trim() : null;
+      type === "team" ? String(data.get("project") || "").trim() || null : null;
     const roles =
       type === "team"
         ? [String(data.get("role") || "").trim()]
@@ -64,7 +64,6 @@ export default function CreatePostModal({
       !year ||
       !name ||
       !telegram ||
-      (type === "team" && !project) ||
       (requiresSpecialization(year) && !specialization)
     )
       return;
@@ -194,14 +193,13 @@ export default function CreatePostModal({
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="project">المشروع</label>
+                  <label htmlFor="project">المشروع (اختياري)</label>
 
                   <input
                     id="project"
                     name="project"
                     type="text"
                     placeholder="مثال: تطبيق للهواتف"
-                    required
                     defaultValue={initial?.project ?? ""}
                   />
                 </div>
