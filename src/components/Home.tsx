@@ -10,6 +10,7 @@ import ContactModal from "@/components/ContactModal";
 import FilterPills from "@/components/FilterPills";
 import NudgeModal from "@/components/NudgeModal";
 import { authClient } from "@/lib/auth-client";
+import { SPECIALIZATIONS, SPEC_YEARS } from "@/lib/specializations";
 import type { NewPostInput, Post, Role, Year } from "@/lib/types";
 
 interface HomeProps {
@@ -49,6 +50,7 @@ export default function Home({
   );
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
   const [showPostModal, setShowPostModal] = useState(false);
   const [contactPost, setContactPost] = useState<Post | null>(null);
@@ -74,7 +76,10 @@ export default function Home({
       (selectedRoles.length === 0 ||
         post.roleValues.some((value) => selectedRoles.includes(value))) &&
       (selectedYears.length === 0 ||
-        (post.year !== null && selectedYears.includes(post.year)))
+        (post.year !== null && selectedYears.includes(post.year))) &&
+      (selectedSpecs.length === 0 ||
+        (post.specialization !== null &&
+          selectedSpecs.includes(post.specialization)))
   );
 
   const feedTitle =
@@ -97,7 +102,7 @@ export default function Home({
 
   const feedCount = `${String(visiblePosts.length).padStart(2, "0")} POSTS`;
 
-  const feedAnimKey = `${currentView}|${sortOrder}|${selectedRoles.join(",")}|${selectedYears.join(",")}`;
+  const feedAnimKey = `${currentView}|${sortOrder}|${selectedRoles.join(",")}|${selectedYears.join(",")}|${selectedSpecs.join(",")}`;
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -143,16 +148,34 @@ export default function Home({
 
   const toggleYear = (value: string | number) => {
     const year = Number(value);
+    const next = selectedYears.includes(year)
+      ? selectedYears.filter((item) => item !== year)
+      : [...selectedYears, year];
 
-    setSelectedYears((prev) =>
-      prev.includes(year)
-        ? prev.filter((item) => item !== year)
-        : [...prev, year]
-    );
+    setSelectedYears(next);
+
+    if (!next.some((item) => SPEC_YEARS.includes(item))) {
+      setSelectedSpecs([]);
+    }
   };
 
   const clearYears = () => {
     setSelectedYears([]);
+    setSelectedSpecs([]);
+  };
+
+  const toggleSpec = (value: string | number) => {
+    const spec = String(value);
+
+    setSelectedSpecs((prev) =>
+      prev.includes(spec)
+        ? prev.filter((item) => item !== spec)
+        : [...prev, spec]
+    );
+  };
+
+  const clearSpecs = () => {
+    setSelectedSpecs([]);
   };
 
   const handleCreatePost = async (data: NewPostInput) => {
@@ -294,6 +317,16 @@ const closePostModal = () => {
             onClear={clearYears}
             label="تصفية حسب السنة"
           />
+
+          {selectedYears.some((year) => SPEC_YEARS.includes(year)) && (
+            <FilterPills
+              items={SPECIALIZATIONS}
+              selected={selectedSpecs}
+              onToggle={toggleSpec}
+              onClear={clearSpecs}
+              label="تصفية حسب تخصص السنة"
+            />
+          )}
 
           <div
             className="filter-row"
