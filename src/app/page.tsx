@@ -4,10 +4,17 @@ import Home from "@/components/Home";
 import { logEvent } from "@/lib/analytics";
 import { auth } from "@/lib/auth";
 import { initDb } from "@/lib/db";
-import { getPosts } from "@/lib/posts";
+import { archiveStalePosts, getPendingNudge, getPosts } from "@/lib/posts";
 import { getRoles } from "@/lib/roles";
 import { getYears } from "@/lib/years";
-import { createNewPost, deleteOwnPost, editOwnPost, logContactOpened } from "./actions";
+import {
+  answerNudge,
+  createNewPost,
+  deleteOwnPost,
+  editOwnPost,
+  logContactOpened,
+  reactivatePost,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -30,19 +37,32 @@ export default async function Page() {
   const roles = await getRoles();
   const years = await getYears();
 
-  logEvent("page_view", { userId: session?.user?.id ?? null });
+  const currentUser = session?.user?.id ?? null;
+
+  await logEvent("page_view", { userId: currentUser });
+
+  await archiveStalePosts();
+
+  let pendingNudge: Awaited<ReturnType<typeof getPendingNudge>> | null = null;
+
+  if (currentUser) {
+    pendingNudge = await getPendingNudge(currentUser);
+  }
 
   return (
     <Home
       posts={getPosts()}
       createPost={createNewPost}
       editPost={editOwnPost}
-      currentUserId={session?.user?.id ?? null}
+      currentUserId={currentUser}
       deletePost={deleteOwnPost}
       roles={roles}
       years={years}
       isAdmin={isAdmin(session?.user?.email)}
       logContact={logContactOpened}
+      pendingNudge={pendingNudge}
+      answerNudge={answerNudge}
+      reactivatePost={reactivatePost}
     />
   );
 }

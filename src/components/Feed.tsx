@@ -15,6 +15,7 @@ interface FeedProps {
   currentUserId: string | null;
   onDelete: (postId: number) => void;
   onEdit?: (post: Post) => void;
+  onReactivate?: (post: Post) => void;
   emptyTitle?: string | null;
   emptyHint?: string | null;
   emptyAction?: FeedEmptyAction | null;
@@ -29,6 +30,7 @@ export default function Feed({
   currentUserId,
   onDelete,
   onEdit,
+  onReactivate,
   emptyTitle,
   emptyHint,
   emptyAction,
@@ -73,11 +75,12 @@ export default function Feed({
             const initials = getInitials(post.name);
             const typeLabel = post.type === "team" ? "فريق" : "طالب";
             const roleLabel = post.type === "team" ? "يبحث عن" : "متاح كـ";
+            const isOwner = currentUserId != null && post.userId === currentUserId;
 
             return (
               <article
                 key={post.id}
-                className={`post ${post.type}`}
+                className={`post ${post.type}${post.archived && isOwner ? " post-archived" : ""}`}
                 style={{ animationDelay: `${Math.min(index, 5) * 60}ms` }}
               >
                 <div className="post-top">
@@ -89,6 +92,10 @@ export default function Feed({
                     <span className="post-type-dot"></span>
                     {typeLabel}
                   </div>
+
+                  {isOwner && post.archived && (
+                    <div className="post-archived-badge">مؤرشف</div>
+                  )}
                 </div>
 
                 <div>
@@ -151,6 +158,15 @@ export default function Feed({
                   </div>
 
                   <div className="post-actions">
+                    {isOwner && post.archived && onReactivate && (
+                      <button
+                        className="reactivate-button"
+                        onClick={() => onReactivate(post)}
+                      >
+                        إعادة تنشيط
+                      </button>
+                    )}
+
                     {currentUserId && post.userId === currentUserId && (
                       <>
                         {onEdit && (
@@ -171,7 +187,7 @@ export default function Feed({
                       </>
                     )}
 
-                    {post.type === "member" && post.github && (
+                    {!post.archived && post.type === "member" && post.github && (
                       <a
                         className="github-button"
                         href={post.github}
@@ -192,12 +208,14 @@ export default function Feed({
                       </a>
                     )}
 
-                    <button
-                      className="contact-button"
-                      onClick={() => onContact(post)}
-                    >
-                      تواصل <span className="arrow">←</span>
-                    </button>
+                    {!post.archived && (
+                      <button
+                        className="contact-button"
+                        onClick={() => onContact(post)}
+                      >
+                        تواصل <span className="arrow">←</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>

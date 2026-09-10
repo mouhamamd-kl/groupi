@@ -63,6 +63,8 @@ await sql`CREATE TABLE IF NOT EXISTS posts (
   contact text NOT NULL,
   github text,
   specialization text,
+  archived boolean NOT NULL DEFAULT false,
+  snoozed_until timestamptz,
   meta text NOT NULL DEFAULT 'طالب جامعي',
   created_at timestamptz NOT NULL DEFAULT now(),
   user_id text REFERENCES "user"(id) ON DELETE SET NULL

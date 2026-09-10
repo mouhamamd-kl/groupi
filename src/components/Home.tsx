@@ -8,6 +8,7 @@ import Feed from "@/components/Feed";
 import CreatePostModal from "@/components/CreatePostModal";
 import ContactModal from "@/components/ContactModal";
 import FilterPills from "@/components/FilterPills";
+import NudgeModal from "@/components/NudgeModal";
 import { authClient } from "@/lib/auth-client";
 import type { NewPostInput, Post, Role, Year } from "@/lib/types";
 
@@ -21,6 +22,9 @@ interface HomeProps {
   years: Year[];
   isAdmin: boolean;
   logContact: (postId: number) => Promise<void>;
+  pendingNudge: Post | null;
+  answerNudge: (postId: number, found: boolean) => Promise<void>;
+  reactivatePost: (postId: number) => Promise<void>;
 }
 
 export default function Home({
@@ -33,9 +37,13 @@ export default function Home({
   years,
   isAdmin,
   logContact,
+  pendingNudge,
+  answerNudge,
+  reactivatePost,
 }: HomeProps) {
   const initialPosts = use(posts);
   const [postList, setPostList] = useState<Post[]>(initialPosts);
+  const [nudgePost, setNudgePost] = useState<Post | null>(pendingNudge);
   const [currentView, setCurrentView] = useState<"teams" | "members" | "mine">(
     "teams"
   );
@@ -59,9 +67,9 @@ export default function Home({
   const filteredPosts = postList.filter(
     (post) =>
       (currentView === "teams"
-        ? post.type === "team"
+        ? post.type === "team" && !post.archived
         : currentView === "members"
-          ? post.type === "member"
+          ? post.type === "member" && !post.archived
           : currentUserId != null && post.userId === currentUserId) &&
       (selectedRoles.length === 0 ||
         post.roleValues.some((value) => selectedRoles.includes(value))) &&
@@ -203,23 +211,54 @@ export default function Home({
     }, 5000);
   };
 
-  const handleUndoDelete = () => {
-    if (deleteTimer.current) {
-      clearTimeout(deleteTimer.current);
-      deleteTimer.current = null;
-    }
-    if (!pendingDelete) return;
-    const { post, index } = pendingDelete;
-    setPendingDelete(null);
-    setPostList((prev) => {
-      if (prev.some((item) => item.id === post.id)) return prev;
-      const next = [...prev];
-      next.splice(Math.min(index, next.length), 0, post);
-      return next;
-    });
-  };
+const handleUndoDelete = () => {
+  if (deleteTimer.current) {
+    clearTimeout(deleteTimer.current);
+    deleteTimer.current = null;
+  }
+  if (!pendingDelete) return;
+  const { post, index } = pendingDelete;
+  setPendingDelete(null);
+  setPostList((prev) => {
+    if (prev.some((item) => item.id === post.id)) return prev;
+    const next = [...prev];
+    next.splice(Math.min(index, next.length), 0, post);
+    return next;
+  });
+};
 
-  const closePostModal = () => {
+const handleNudgeAnswer = async (found: boolean) => {
+  const target = nudgePost;
+  if (!target) return;
+  setNudgePost(null);
+  try {
+    await answerNudge(target.id, found);
+    if (found) {
+      setPostList((prev) =>
+        prev.map((post) =>
+          post.id === target.id ? { ...post, archived: true } : post
+        )
+      );
+    }
+  } catch {
+    // Ignore; the modal already closed.
+  }
+};
+
+const handleReactivate = async (post: Post) => {
+  try {
+    await reactivatePost(post.id);
+    setPostList((prev) =>
+      prev.map((item) =>
+        item.id === post.id ? { ...item, archived: false } : item
+      )
+    );
+  } catch {
+    // Ignore transient failures.
+  }
+};
+
+const closePostModal = () => {
     setShowPostModal(false);
   };
 
@@ -293,6 +332,7 @@ export default function Home({
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={handleEditPost}
+          onReactivate={handleReactivate}
           emptyTitle={
             currentView === "mine"
               ? currentUserId
@@ -363,6 +403,14 @@ export default function Home({
 
       {contactPost && (
         <ContactModal post={contactPost} onClose={closeContactModal} />
+      )}
+
+      {nudgePost && (
+        <NudgeModal
+          post={nudgePost}
+          onAnswer={handleNudgeAnswer}
+          onClose={() => setNudgePost(null)}
+        />
       )}
     </>
   );

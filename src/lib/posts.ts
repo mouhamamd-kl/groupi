@@ -1,13 +1,54 @@
 import "server-only";
 
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { db, initDb } from "./db";
 import { user } from "./auth-schema";
 import { postRoles, posts, roles, years } from "./schema";
 import type { NewPostInput, Post, PostType } from "./types";
 
+interface PostRowData {
+  post: PostRow;
+  avatar: string | null;
+  yearLabel: string | null;
+}
+
 export async function getPosts(): Promise<Post[]> {
+  await initDb();
+
+  const rows = await selectPosts();
+
+  return hydratePosts(rows);
+}
+
+export async function archiveStalePosts(): Promise<number> {
+  await initDb();
+
+  const archived = await db
+    .update(posts)
+    .set({ archived: true })
+    .where(
+      and(
+        eq(posts.archived, false),
+        sql`${posts.createdAt} < now() - interval '3 days'`,
+        or(
+          sql`${posts.snoozedUntil} IS NULL`,
+          sql`${posts.snoozedUntil} <= now()`
+        ),
+        sql`NOT EXISTS (
+          SELECT 1 FROM analytics_events e
+          WHERE e.type = 'page_view'
+            AND e.user_id = ${posts.userId}
+            AND e.created_at > ${posts.createdAt} + interval '3 days'
+        )`
+      )
+    )
+    .returning({ id: posts.id });
+
+  return archived.length;
+}
+
+export async function getPendingNudge(userId: string): Promise<Post | null> {
   await initDb();
 
   const rows = await db
@@ -19,8 +60,41 @@ export async function getPosts(): Promise<Post[]> {
     .from(posts)
     .leftJoin(user, eq(posts.userId, user.id))
     .leftJoin(years, sql`${posts.year} = ${years.value}`)
-    .orderBy(desc(posts.createdAt), desc(posts.id));
+    .where(
+      and(
+        eq(posts.userId, userId),
+        eq(posts.archived, false),
+        sql`${posts.createdAt} < now() - interval '3 days'`,
+        or(
+          sql`${posts.snoozedUntil} IS NULL`,
+          sql`${posts.snoozedUntil} <= now()`
+        )
+      )
+    )
+    .orderBy(asc(posts.createdAt), asc(posts.id))
+    .limit(1);
 
+  if (rows.length === 0) return null;
+
+  const [hydrated] = await hydratePosts(rows);
+
+  return hydrated;
+}
+
+async function selectPosts(): Promise<PostRowData[]> {
+  return db
+    .select({
+      post: posts,
+      avatar: user.image,
+      yearLabel: years.label,
+    })
+    .from(posts)
+    .leftJoin(user, eq(posts.userId, user.id))
+    .leftJoin(years, sql`${posts.year} = ${years.value}`)
+    .orderBy(desc(posts.createdAt), desc(posts.id));
+}
+
+async function hydratePosts(rows: PostRowData[]): Promise<Post[]> {
   if (rows.length === 0) return [];
 
   const roleMap = await getRoleMap();
@@ -112,6 +186,7 @@ interface PostRow {
   contact: string;
   github: string | null;
   specialization: string | null;
+  archived: boolean;
   meta: string;
   createdAt: Date;
   userId: string | null;
@@ -215,6 +290,7 @@ function toPost(
     contact: row.contact,
     github: row.github,
     specialization: row.specialization,
+    archived: row.archived,
     meta: row.meta,
     time: timeAgo(new Date(row.createdAt)),
     createdAt: new Date(row.createdAt).toISOString(),

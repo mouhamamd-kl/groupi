@@ -1,6 +1,7 @@
 import {
   bigint,
   bigserial,
+  boolean,
   integer,
   pgTable,
   primaryKey,
@@ -20,6 +21,8 @@ export const posts = pgTable("posts", {
   contact: text("contact").notNull(),
   github: text("github"),
   specialization: text("specialization"),
+  archived: boolean("archived").notNull().default(false),
+  snoozedUntil: timestamp("snoozed_until", { withTimezone: true }),
   meta: text("meta").notNull().default("طالب جامعي"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

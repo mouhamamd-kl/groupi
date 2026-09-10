@@ -148,6 +148,8 @@ async function runInit(): Promise<void> {
       contact text NOT NULL,
       github text,
       specialization text,
+      archived boolean NOT NULL DEFAULT false,
+      snoozed_until timestamptz,
       meta text NOT NULL DEFAULT 'طالب جامعي',
       created_at timestamptz NOT NULL DEFAULT now(),
       user_id text REFERENCES "user"(id) ON DELETE SET NULL
@@ -205,5 +207,10 @@ async function runInit(): Promise<void> {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS analytics_events_type_created_idx
     ON analytics_events (type, created_at);
+  `);
+
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS posts_archived_created_idx
+    ON posts (archived, created_at);
   `);
 }

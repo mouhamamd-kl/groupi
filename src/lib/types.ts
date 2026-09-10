@@ -23,6 +23,7 @@ export interface Post {
   contact: string;
   github: string | null;
   specialization: string | null;
+  archived: boolean;
   meta: string;
   time: string;
   createdAt: string;

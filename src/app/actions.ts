@@ -1,13 +1,15 @@
 "use server";
 
+import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { logEvent } from "@/lib/analytics";
 import { auth } from "@/lib/auth";
-import { initDb } from "@/lib/db";
+import { db, initDb } from "@/lib/db";
 import { deletePost, insertPost, updatePost } from "@/lib/posts";
 import { getRoles } from "@/lib/roles";
 import { requiresSpecialization, SPECIALIZATIONS } from "@/lib/specializations";
+import { posts } from "@/lib/schema";
 import { getYears } from "@/lib/years";
 import type { NewPostInput, Post, PostType } from "@/lib/types";
 
@@ -209,6 +211,73 @@ export async function editOwnPost(
   }
 
   return updated;
+}
+
+export async function answerNudge(
+  postId: number,
+  found: boolean
+): Promise<void> {
+  await initDb();
+
+  if (!Number.isInteger(postId) || postId <= 0) {
+    throw new Error("منشور غير صالح");
+  }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("سجّل الدخول أولاً");
+  }
+
+  const [existing] = await db
+    .select({ userId: posts.userId })
+    .from(posts)
+    .where(eq(posts.id, postId));
+
+  if (!existing || existing.userId !== session.user.id) {
+    throw new Error("لا يمكنك تعديل هذا المنشور");
+  }
+
+  await db
+    .update(posts)
+    .set(
+      found
+        ? { archived: true, snoozedUntil: null }
+        : { snoozedUntil: sql`now() + interval '3 days'` }
+    )
+    .where(eq(posts.id, postId));
+}
+
+export async function reactivatePost(postId: number): Promise<void> {
+  await initDb();
+
+  if (!Number.isInteger(postId) || postId <= 0) {
+    throw new Error("منشور غير صالح");
+  }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("سجّل الدخول أولاً");
+  }
+
+  const [existing] = await db
+    .select({ userId: posts.userId })
+    .from(posts)
+    .where(and(eq(posts.id, postId)));
+
+  if (!existing || existing.userId !== session.user.id) {
+    throw new Error("لا يمكنك تعديل هذا المنشور");
+  }
+
+  await db
+    .update(posts)
+    .set({ archived: false, snoozedUntil: null })
+    .where(eq(posts.id, postId));
 }
 
 function clean(value: string, max: number): string {
